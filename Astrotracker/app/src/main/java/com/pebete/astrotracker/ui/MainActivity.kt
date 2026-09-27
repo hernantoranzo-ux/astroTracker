@@ -1,4 +1,5 @@
-package com.pebete.astrotracker
+package com.pebete.astrotracker.ui
+import com.pebete.astrotracker.R
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
