@@ -1,3 +1,150 @@
 <resources>
     <string name="app_name">Astrotracker</string>
+
+    <!-- Pantallas / menú -->
+    <string name="screen_home">Inicio</string>
+    <string name="screen_connection">Conexión</string>
+    <string name="screen_manual">Modo Manual</string>
+    <string name="screen_auto">Modo Automático</string>
+    <string name="screen_calibration">Calibración</string>
+    <string name="screen_observations">Mis Observaciones</string>
+    <string name="screen_history">Historial</string>
+    <string name="screen_catalog">Catálogo Celeste</string>
+    <string name="screen_notifications">Notificaciones</string>
+    <string name="screen_settings">Configuración</string>
+    <string name="screen_help">Ayuda y Soporte</string>
+    <string name="nav_header_title">Seguidor de Estrellas</string>
+    <string name="nav_header_subtitle">Astrotracker</string>
+    <string name="cd_open_menu">Abrir menú</string>
+
+    <!-- Estado de conexión (chip superior) -->
+    <string name="chip_connected">Conectado</string>
+    <string name="chip_connecting">Conectando…</string>
+    <string name="chip_disconnected">Desconectado</string>
+    <string name="chip_error">Error de conexión</string>
+    <string name="chip_reconnecting">Reconectando (%1$d/%2$d)…</string>
+    <string name="stale_banner">Sin respuesta del telescopio. Verificar conexión</string>
+
+    <!-- Inicio -->
+    <string name="home_title">Seguidor de Estrellas</string>
+    <string name="home_subtitle">Explora el universo con precisión</string>
+    <string name="home_status_label">Telescopio</string>
+    <string name="home_time_label">Hora local</string>
+    <string name="home_choose_mode">Selecciona tu Modo de Rastreo</string>
+    <string name="mode_manual_title">Modo Manual</string>
+    <string name="mode_manual_desc">Control total de la dirección y velocidad</string>
+    <string name="mode_auto_title">Modo Automático</string>
+    <string name="mode_auto_desc">Rastreo inteligente de objetos celestes</string>
+    <string name="home_hint_disconnected">Conectá el telescopio para comenzar</string>
+    <string name="home_hint_ready">Sistema conectado y listo para operar</string>
+    <string name="home_device_none">Ningún dispositivo seleccionado</string>
+    <string name="home_connect_first">Primero conectá el telescopio</string>
+
+    <!-- Estado del enlace -->
+    <string name="link_none">Sin conexión</string>
+    <string name="link_waiting">Esperando datos…</string>
+    <string name="link_ok">Enlace activo</string>
+    <string name="link_stale">Sin respuesta</string>
+    <string name="fmt_degrees">%1$.1f°</string>
+    <string name="value_unknown">—</string>
+
+    <!-- Modo manual -->
+    <string name="manual_in_auto">El telescopio está en modo automático. Para usar el control manual volvé a modo manual.</string>
+    <string name="manual_back_to_manual">Volver a modo manual</string>
+    <string name="manual_phone_title">Orientación del teléfono</string>
+    <string name="manual_azimuth">Azimut</string>
+    <string name="manual_altitude">Altitud</string>
+    <string name="manual_phone_note">Solo visual: en modo manual no se envía al telescopio.</string>
+    <string name="manual_no_sensor">Este teléfono no tiene el sensor de orientación necesario. El control manual funciona igual.</string>
+    <string name="manual_link_title">Enlace con el telescopio</string>
+    <string name="manual_motors_title">Posición de los motores</string>
+    <string name="manual_request_pos">Actualizar posición</string>
+    <string name="manual_pos_unknown">Sin datos todavía</string>
+    <string name="manual_pos_format">Eje AR (X): %1$d pasos\nEje DEC (Y): %2$d pasos</string>
+    <string name="manual_dpad_title">Movimiento</string>
+    <string name="manual_dpad_legend">▲ ▼ eje AR (azimut)    ◄ ► eje DEC (altitud)</string>
+    <string name="manual_dpad_hint">Mantené presionado para seguir moviendo. Al soltar, el motor termina su paso actual y se detiene.</string>
+    <string name="manual_speed_title">Velocidad (pasos de a 100)</string>
+    <string name="manual_speed_down">Más lenta</string>
+    <string name="manual_speed_up">Más rápida</string>
+    <string name="manual_set_zero">Fijar cero</string>
+    <string name="manual_set_max">Fijar límite</string>
+    <string name="manual_go_auto">Ir a Modo Automático</string>
+    <string name="dialog_zero_title">¿Fijar la posición cero?</string>
+    <string name="dialog_zero_msg">La posición actual de los motores quedará guardada como referencia cero en el telescopio.</string>
+    <string name="dialog_max_title">¿Fijar el límite máximo?</string>
+    <string name="dialog_max_msg">La posición actual de los motores quedará guardada como límite máximo en el telescopio.</string>
+    <string name="dialog_confirm">Confirmar</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="cd_move_up">Mover eje AR adelante</string>
+    <string name="cd_move_down">Mover eje AR atrás</string>
+    <string name="cd_move_left">Mover eje DEC a la izquierda</string>
+    <string name="cd_move_right">Mover eje DEC a la derecha</string>
+
+    <!-- Modo automático -->
+    <string name="auto_activate_title">Modo automático desactivado</string>
+    <string name="auto_activate_desc">Al activarlo, el teléfono envía su orientación al telescopio para apuntar a un objetivo. Antes de activarlo, apuntá el teléfono en la misma dirección que el telescopio.</string>
+    <string name="auto_activate">Activar modo automático</string>
+    <string name="auto_screen_on_note">Mantené la app abierta y la pantalla encendida: si se interrumpe el envío de la orientación, el telescopio se detiene a los 5 segundos por seguridad.</string>
+    <string name="target_title">Objetivo</string>
+    <string name="target_az">Azimut (0 a 360°)</string>
+    <string name="target_alt">Altitud (−90 a 90°)</string>
+    <string name="target_point">Apuntar</string>
+    <string name="tracking_title">Seguimiento sideral</string>
+    <string name="tracking_switch">Seguimiento activo</string>
+    <string name="speed_hint">Velocidad (pasos/s)</string>
+    <string name="speed_apply">Aplicar velocidad</string>
+    <string name="tel_title">Telemetría</string>
+    <string name="tel_az">Azimut</string>
+    <string name="tel_alt">Altitud</string>
+    <string name="tel_error">Error de azimut</string>
+    <string name="tel_tracking">Seguimiento</string>
+    <string name="tel_on">Activo</string>
+    <string name="tel_off">Inactivo</string>
+    <string name="cal_title">Calibración</string>
+    <string name="cal_info">Pasos por grado actuales: %1$s %2$s</string>
+    <string name="cal_info_default">(valor por defecto del firmware)</string>
+    <string name="cal_info_saved">(guardado en este teléfono)</string>
+    <string name="cal_start">Iniciar calibración</string>
+    <string name="cal_instructions">El motor giró 90° teóricos. Medí cuántos grados giró realmente e ingresalo.</string>
+    <string name="cal_measured_hint">Grados medidos</string>
+    <string name="cal_apply">Aplicar</string>
+    <string name="cal_cancel">Cancelar</string>
+    <string name="auto_back_manual">Volver a modo manual</string>
+    <string name="err_required">Campo obligatorio</string>
+    <string name="err_number">Número inválido</string>
+    <string name="err_az_range">Debe estar entre 0 y 360</string>
+    <string name="err_alt_range">Debe estar entre −90 y 90</string>
+    <string name="err_positive">Debe ser mayor que 0</string>
+
+    <!-- Conexión -->
+    <string name="conn_bt_title">Bluetooth</string>
+    <string name="conn_bt_unsupported">Este teléfono no tiene Bluetooth</string>
+    <string name="conn_bt_off">El Bluetooth está apagado</string>
+    <string name="conn_bt_on">Bluetooth activado</string>
+    <string name="conn_no_permission">Falta el permiso para usar Bluetooth. Sin él no se puede ver ni conectar el telescopio.</string>
+    <string name="conn_grant">Conceder permiso</string>
+    <string name="conn_enable">Activar Bluetooth</string>
+    <string name="conn_open_settings">Abrir ajustes de Bluetooth</string>
+    <string name="conn_devices_title">Dispositivos emparejados</string>
+    <string name="conn_no_devices">No hay dispositivos emparejados. Emparejá el módulo HC-05 desde los ajustes de Bluetooth del teléfono (PIN habitual: 1234 o 0000) y volvé.</string>
+    <string name="conn_connect">Conectar</string>
+    <string name="conn_connecting">Conectando…</string>
+    <string name="conn_disconnect">Desconectar</string>
+    <string name="conn_state_connected">Conectado al telescopio</string>
+    <string name="conn_state_disconnected">Desconectado</string>
+    <string name="conn_reconnecting">Reconectando automáticamente (intento %1$d de %2$d)…</string>
+
+    <!-- Configuración -->
+    <string name="settings_reconnect">Reconectar automáticamente</string>
+    <string name="settings_reconnect_desc">Reintenta hasta 3 veces si se corta la conexión</string>
+    <string name="settings_red">Modo nocturno rojo</string>
+    <string name="settings_red_desc">Filtro rojo para preservar la visión nocturna</string>
+    <string name="settings_cal_title">Calibración</string>
+    <string name="settings_steps">Pasos por grado: %1$s</string>
+    <string name="settings_steps_note">Este valor se reenvía al telescopio cada vez que te conectás, porque el firmware no permite leerlo.</string>
+
+    <!-- Placeholders / ayuda -->
+    <string name="dev_text">Esta sección está en desarrollo.</string>
+    <string name="help_body">1. Emparejá el módulo HC-05 desde los ajustes de Bluetooth del teléfono (PIN habitual 1234 o 0000).\n\n2. En Conexión elegí el dispositivo y tocá Conectar.\n\n3. Modo Manual: los botones ▲ ▼ mueven el eje AR (azimut) y ◄ ► el eje DEC (altitud). Mantené presionado para seguir moviendo. Fijar cero y Fijar límite guardan posiciones de referencia en el telescopio.\n\n4. Modo Automático: el teléfono envía su orientación al telescopio. Mantené la pantalla encendida y la app abierta.\n\n5. Calibración: iniciala desde Modo Automático, medí los grados reales que giró el motor e ingresalos.\n\nSi aparece “Sin respuesta del telescopio”, revisá la alimentación del Arduino y la distancia al teléfono.</string>
 </resources>
