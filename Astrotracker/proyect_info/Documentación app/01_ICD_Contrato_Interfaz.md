@@ -1,7 +1,7 @@
 # 01 — ICD: Contrato de Interfaz App ↔ Arduino (Astrotracker)
 
 > **Interface Control Document (ICD) — Versión 1.0**
-> Basado en: `Prototipo_arduino.ino` v1.5 (29/03/2026)
+> Basado en: `Prototipo_arduino.ino` v1.6 (08/10/2026)
 
 ---
 
@@ -39,10 +39,10 @@
 
 | Comando (byte) | Acción en Arduino | Motor afectado | Pasos |
 |:--------------:|-------------------|:--------------:|:-----:|
-| `F` | Avanzar (DEC +) | Motor Y (DEC) | +200 |
-| `B` | Retroceder (DEC −) | Motor Y (DEC) | −200 |
-| `R` | Derecha (AR +) | Motor X (AR) | +200 |
-| `L` | Izquierda (AR −) | Motor X (AR) | −200 |
+| `F` | Avanzar (AR +) | Motor X (AR) | +200 |
+| `B` | Retroceder (AR −) | Motor X (AR) | −200 |
+| `R` | Derecha (DEC +) | Motor Y (DEC) | +200 |
+| `L` | Izquierda (DEC −) | Motor Y (DEC) | −200 |
 | `Z` | Guardar posición actual como cero de referencia | X e Y | — |
 | `M` | Guardar posición actual como límite máximo | X e Y | — |
 | `P` | Solicitar posición actual | X e Y | — |
@@ -50,7 +50,7 @@
 | `-` | Decrementar velocidad en 100 pasos/s (mín: 100) | X e Y | — |
 | `a` | **Transición a MODO AUTOMÁTICO** | — | — |
 
-> **Nota de mapeo físico:** Según el firmware, el Motor X (pines STEP=2, DIR=5 de la CNC Shield) corresponde al eje de **AR (Ascensión Recta)**, y el Motor Y (STEP=3, DIR=6) al eje de **DEC (Declinación)**.
+> **Nota de mapeo físico (firmware v1.5 es la referencia):** el Motor X (pines STEP=2, DIR=5 de la CNC Shield) corresponde al eje de **AR (Ascensión Recta / azimut)** y el Motor Y (STEP=3, DIR=6) al eje de **DEC (Declinación / altitud)**. En modo manual `F`/`B` mueven el Motor X (AR) y `R`/`L` mueven el Motor Y (DEC). En modo automático el Motor X corrige el error de azimut y el Motor Y el de altitud.
 
 #### Respuesta del Arduino en Modo Manual
 
@@ -76,6 +76,10 @@
 | `CAL:START\n` | Iniciar calibración (mueve 90° teóricos) | — | `CAL:START\n` |
 | `CAL:<float>\n` | Enviar nuevo valor de pasosPorGrado | `Float` > 0 | `CAL:22.75\n` |
 | `MANUAL\n` | **Transición a MODO MANUAL** | — | `MANUAL\n` |
+
+> **Failsafe de enlace (firmware v1.6):** en modo automático el Arduino usa `AZ_TEL`/`ALT_TEL` como *heartbeat*. Si pasan **5000 ms** sin recibir ninguno, apaga el seguimiento, frena los motores e inhibe el lazo automático hasta que vuelva a llegar un `AZ_TEL`. Por eso la app debe enviar la posición del teléfono de forma continua (≥ 1 vez cada 1 s; la app lo hace cada ~200 ms) mientras haya un objetivo o un seguimiento activo.
+>
+> **Calibración (firmware v1.6):** desde `CAL:START` hasta recibir `CAL:<valor>` el lazo automático queda bloqueado (flag `calibrando`) para no pisar el movimiento de 90°, y `TRACK:ON` se ignora. `CAL:<valor>` solo se acepta si el valor es > 0.
 
 ---
 
@@ -169,3 +173,4 @@ La app Android es la responsable de leer los sensores de posición del dispositi
 | Desconexión abrupta del Bluetooth | Cerrar socket, emitir `ConnectionState.DISCONNECTED`, mostrar aviso |
 | Envío de comando cuando desconectado | La app debe ignorar el evento y mostrar un Snackbar informativo |
 | Buffer overflow en lectura | El lector debe acumular por línea (`\n`) y descartar líneas > 128 bytes |
+| App en segundo plano / sin envío de `AZ_TEL` > 5 s (automático) | El firmware detiene seguimiento y motores (failsafe). La app debe mantener la pantalla encendida mientras controla el telescopio |

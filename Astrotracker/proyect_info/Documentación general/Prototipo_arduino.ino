@@ -1,3 +1,5 @@
+// Actualizacion 08/10/2026 Version 1.6: (1) La calibracion ya no es pisada por el lazo automatico (flag 'calibrando').
+// (2) Failsafe de enlace: si en modo automatico no llegan AZ_TEL en 5 s se apaga el tracking y se detienen los motores.
 // Actualizacion 29/03/2026 Version timmy 1.5 (Ni idea de las anteriores versiones),esta version se caracteriza por:
 //Se implementó una separación estricta entre el modo manual y automático, evitando conflictos en la lectura de datos Bluetooth. Además, se mejoró el protocolo de comunicación, la estabilidad del sistema y la lógica de calibración, manteniendo compatibilidad con funciones existentes como la lectura de posición.
 // ============================================================
@@ -91,6 +93,24 @@ float altActual = 0;
 
 // Velocidad de seguimiento (tracking sideral)
 float velocidadSideral = 50;
+
+
+// ================== FAILSAFE DE ENLACE (v1.6) ==================
+// En modo automatico la app envia AZ_TEL de forma continua (cada ~200 ms). Si deja de llegar
+// (Bluetooth cortado, app cerrada o en segundo plano) los motores NO deben seguir girando solos.
+const unsigned long TIMEOUT_ENLACE_MS = 5000;
+
+// Instante (millis) del ultimo AZ_TEL/ALT_TEL recibido, o de la entrada a modo automatico
+unsigned long ultimoAzTel = 0;
+
+// false = enlace perdido: el lazo automatico queda inhibido hasta recibir un nuevo AZ_TEL
+bool enlaceActivo = true;
+
+
+// ================== CALIBRACION (flag v1.6) ==================
+// true desde CAL:START hasta recibir CAL:<valor> (o volver a manual).
+// Mientras es true el lazo automatico NO mueve los motores, para no pisar el movimiento de 90 grados.
+bool calibrando = false;
 
 
 // ================== CALIBRACION ==================
@@ -205,12 +225,15 @@ void loop() {
       // Activa modo automático
       case 'a':
         modoAutomatico = true;
+        ultimoAzTel = millis();   // arranca el reloj del failsafe de enlace
+        enlaceActivo = true;
         break;
 
       // Vuelve a modo manual
       case 'm':
         modoAutomatico = false;
         trackingActivo = false;
+        calibrando = false;
         break;
     }
   }
@@ -231,6 +254,9 @@ void loop() {
     if (msg == "MANUAL") {
       modoAutomatico = false;
       trackingActivo = false;
+      calibrando = false;
+      motorX.stop();   // v1.6: frena suavemente al salir de automatico
+      motorY.stop();
     }
 
     // Recibe coordenadas del objeto
@@ -241,15 +267,23 @@ void loop() {
       altObjetivo = msg.substring(8).toFloat();
 
     // Recibe datos del celular
-    else if (msg.startsWith("AZ_TEL:"))
+    else if (msg.startsWith("AZ_TEL:")) {
       azActual = msg.substring(7).toFloat();
+      ultimoAzTel = millis();   // heartbeat del enlace
+      enlaceActivo = true;
+    }
 
-    else if (msg.startsWith("ALT_TEL:"))
+    else if (msg.startsWith("ALT_TEL:")) {
       altActual = msg.substring(8).toFloat();
+      ultimoAzTel = millis();
+      enlaceActivo = true;
+    }
 
     // Activa o desactiva tracking
-    else if (msg == "TRACK:ON")
-      trackingActivo = true;
+    else if (msg == "TRACK:ON") {
+      // v1.6: no se puede activar el seguimiento en medio de una calibracion
+      if (!calibrando) trackingActivo = true;
+    }
 
     else if (msg == "TRACK:OFF")
       trackingActivo = false;
@@ -263,16 +297,24 @@ void loop() {
     // Inicia calibración moviendo 90°
     else if (msg == "CAL:START") {
 
-      // Desactiva tracking pero mantiene modo automático
+      // Desactiva tracking pero mantiene modo automatico
       trackingActivo = false;
 
-      // Mueve el motor 90 grados teóricos
+      // v1.6: marca la calibracion en curso para que el lazo automatico no pise este movimiento
+      calibrando = true;
+
+      // Mueve el motor 90 grados teoricos
       motorX.move(90 * pasosPorGrado);
     }
 
     // Recibe nuevo valor calibrado
     else if (msg.startsWith("CAL:")) {
-      pasosPorGrado = msg.substring(4).toFloat();
+      float nuevo = msg.substring(4).toFloat();
+
+      // v1.6: solo se acepta un valor valido (> 0); un texto invalido da 0 con toFloat()
+      if (nuevo > 0) pasosPorGrado = nuevo;
+
+      calibrando = false;   // la calibracion termino
     }
   }
 
@@ -280,26 +322,40 @@ void loop() {
   // ================== LOGICA AUTOMATICA ==================
   if (modoAutomatico) {
 
-    // Si no está en tracking, apunta al objeto
-    if (!trackingActivo) {
-
-      // Calcula diferencia angular
-      float errorAz = azObjetivo - azActual;
-      float errorAlt = altObjetivo - altActual;
-
-      // Corrige el giro para el camino más corto
-      if (errorAz > 180) errorAz -= 360;
-      if (errorAz < -180) errorAz += 360;
-
-      // Mueve motores según error
-      motorX.move(errorAz * pasosPorGrado);
-      motorY.move(errorAlt * pasosPorGrado);
+    // FAILSAFE (v1.6): si no llega AZ_TEL en TIMEOUT_ENLACE_MS, se considera perdido el enlace con la app
+    if (millis() - ultimoAzTel > TIMEOUT_ENLACE_MS) {
+      if (enlaceActivo) {
+        trackingActivo = false;   // apaga el seguimiento sideral
+        motorX.stop();            // frena los motores
+        motorY.stop();
+        enlaceActivo = false;
+      }
     }
 
-    // Si está en tracking, mueve continuamente
-    else {
-      motorX.setSpeed(velocidadSideral);
-      motorX.runSpeed();
+    // Solo se controla el movimiento si hay enlace y no se esta calibrando
+    if (enlaceActivo && !calibrando) {
+
+      // Si no esta en tracking, apunta al objeto
+      if (!trackingActivo) {
+
+        // Calcula diferencia angular
+        float errorAz = azObjetivo - azActual;
+        float errorAlt = altObjetivo - altActual;
+
+        // Corrige el giro para el camino mas corto
+        if (errorAz > 180) errorAz -= 360;
+        if (errorAz < -180) errorAz += 360;
+
+        // Mueve motores segun error
+        motorX.move(errorAz * pasosPorGrado);
+        motorY.move(errorAlt * pasosPorGrado);
+      }
+
+      // Si esta en tracking, mueve continuamente
+      else {
+        motorX.setSpeed(velocidadSideral);
+        motorX.runSpeed();
+      }
     }
   }
 

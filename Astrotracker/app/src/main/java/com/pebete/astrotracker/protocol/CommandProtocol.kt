@@ -1,5 +1,6 @@
 package com.pebete.astrotracker.protocol
 
+import com.pebete.astrotracker.data.model.MotorPosition
 import com.pebete.astrotracker.data.model.TelemetryData
 import java.util.Locale
 import java.util.UUID
@@ -13,10 +14,10 @@ object CommandProtocol {
        interpretado por las librerías de Gluetooth de Android */
 
     //Comandos del modo manual
-    const val MANUAL_FORWARD = 'F'  //Avanzar DEC (+)
-    const val MANUAL_BACK = 'B'     //Retroceder DEC (-)
-    const val MANUAL_RIGHT = 'R'    //Derecha AR (+)
-    const val MANUAL_LEFT = 'L'     //Izquierda AR (-)
+    const val MANUAL_FORWARD = 'F'  //Avanzar AR (+)  -> Motor X en el firmware
+    const val MANUAL_BACK = 'B'     //Retroceder AR (-) -> Motor X
+    const val MANUAL_RIGHT = 'R'    //Derecha DEC (+)   -> Motor Y
+    const val MANUAL_LEFT = 'L'     //Izquierda DEC (-) -> Motor Y
     const val MANUAL_SET_ZERO = 'Z' //Guardar posición actual como cero
     const val MANUAL_SET_MAX = 'M'  //Guardar posición actual como límite máximo
     const val MANUAL_REQUEST_POS = 'P'  //Pedir posición actual al Arduino
@@ -62,5 +63,15 @@ object CommandProtocol {
             )
         }.getOrNull()
 
+    }
+
+    // Parseo de la respuesta al comando 'P' en modo manual: "<posX>,<posY>" (ej. "1200,-400")
+    // Devuelve null si la línea no tiene exactamente ese formato (así distinguimos basura de una respuesta válida)
+    fun parseMotorPosition(line: String): MotorPosition? {
+        val parts = line.trim().split(",")
+        if (parts.size != 2) return null
+        val x = parts[0].trim().toIntOrNull() ?: return null
+        val y = parts[1].trim().toIntOrNull() ?: return null
+        return MotorPosition(x, y)
     }
 }

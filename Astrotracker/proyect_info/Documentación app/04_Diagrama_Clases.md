@@ -79,6 +79,12 @@ classDiagram
         +altitude: Float
         +timestamp: Long
     }
+    
+    class MotorPosition {
+        <<data class>>
+        +stepsX: Int
+        +stepsY: Int
+    }
 
     class AstroUiState {
         <<data class>>
@@ -86,10 +92,18 @@ classDiagram
         +mode: AppMode
         +telemetry: TelemetryData?
         +phonePosition: PhonePosition?
+        +motorPosition: MotorPosition?
         +pairedDevices: List~BluetoothDeviceInfo~
+        +selectedDeviceMac: String?
         +isCalibrating: Boolean
+        +isSensorAvailable: Boolean
+        +isBluetoothEnabled: Boolean
         +errorMessage: String?
         +stepsPerDegree: Float
+        +isStepsCalibrated: Boolean
+        +autoReconnect: Boolean
+        +redNightMode: Boolean
+        +reconnectAttempt: Int
     }
 
     class BluetoothDeviceInfo {
@@ -140,9 +154,14 @@ classDiagram
         -watchdogJob: Job?
         -_telemetryFlow: MutableSharedFlow~TelemetryData~
         -_connectionFlow: MutableSharedFlow~ConnectionState~
+        -_isCalibrating: MutableStateFlow~Boolean~
+        -_motorPositionFlow: MutableSharedFlow~MotorPosition~
+        +messages: SharedFlow~String~
         +telemetryFlow: SharedFlow~TelemetryData~
         +connectionFlow: SharedFlow~ConnectionState~
         +phonePositionFlow: SharedFlow~PhonePosition~
+        +motorPositionFlow: SharedFlow~MotorPosition~
+        +isCalibratingFlow: StateFlow~Boolean~
         +getPairedDevices(): List~BluetoothDeviceInfo~
         +connect(macAddress: String): Unit
         +disconnect(): Unit
@@ -154,8 +173,11 @@ classDiagram
         +setSiderealSpeed(stepsPerSec: Float): Unit
         +startCalibration(): Unit
         +applyCalibration(measuredDeg: Float, currentSteps: Float): Unit
+        +cancelCalibration(currentStepsPerDegree: Float): Unit
         +switchToManual(): Unit
         +switchToAuto(): Unit
+        +setUiVisible(visible: Boolean): Unit
+        +release(): Unit
         -parseTelemetry(line: String): TelemetryData?
         -startTelemetryWatchdog(): Unit
         -startReadingLoop(): Unit
@@ -169,8 +191,10 @@ classDiagram
         <<class>>
         -repository: AstroRepository
         -viewModelScope: CoroutineScope
+        -settings: SettingsStore
         -_uiState: MutableStateFlow~AstroUiState~
         +uiState: StateFlow~AstroUiState~
+        +messages: SharedFlow~String~
         +onDeviceSelected(mac: String): Unit
         +onConnectClicked(): Unit
         +onDisconnectClicked(): Unit
@@ -181,10 +205,13 @@ classDiagram
         +onSpeedChanged(stepsPerSec: Float): Unit
         +onCalibrationStart(): Unit
         +onCalibrationValue(measuredDeg: Float): Unit
+        +onCalibrationCancel(): Unit
+        +onAutoReconnectChanged(enabled: Boolean): Unit
+        +onRedNightModeChanged(enabled: Boolean): Unit
+        +onAppVisibilityChanged(visible: Boolean): Unit
+        +onErrorShown(): Unit
         -observeRepository(): Unit
         -handleConnectionState(state: ConnectionState): Unit
-        -handleTelemetry(data: TelemetryData): Unit
-        -handlePhonePosition(pos: PhonePosition): Unit
     }
 
     %% =============================================

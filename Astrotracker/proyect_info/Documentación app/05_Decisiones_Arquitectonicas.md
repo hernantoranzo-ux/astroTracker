@@ -142,19 +142,31 @@ A declarar en `AndroidManifest.xml`:
 
 ```xml
 <!-- Bluetooth Clásico -->
-<uses-permission android:name="android.permission.BLUETOOTH" />
-<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 
 <!-- Android 12+ (API 31+) -->
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
-<!-- Necesario para scanning de dispositivos en Android < 12 -->
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<!-- No se requiere BLUETOOTH_SCAN ni ACCESS_FINE_LOCATION porque nos conectamos a un dispositivo previamente emparejado -->
 
-<!-- Sensores (no requieren permiso explícito, pero sí declaración de feature) -->
-<uses-feature android:name="android.hardware.sensor.compass" android:required="true" />
-<uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
+<!-- Sensores (no requieren permiso explícito, declarados como opcionales para no restringir la instalación) -->
+<uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+<uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
 ```
 
-> ⚠️ **Nota importante:** En Android 12+ (API 31), `BLUETOOTH_CONNECT` es un **permiso peligroso** que debe solicitarse en runtime. La `MainActivity` debe incluir lógica de `ActivityResultContracts.RequestMultiplePermissions`.
+> ⚠️ **Nota importante:** En Android 12+ (API 31), `BLUETOOTH_CONNECT` es un **permiso peligroso** que debe solicitarse en runtime. La `MainActivity` incluye lógica de `ActivityResultContracts.RequestMultiplePermissions`. No escaneamos dispositivos nuevos, solo mostramos los emparejados, lo que simplifica enormemente los permisos requeridos.
+
+---
+
+## 5.10 Implementación del Watchdog por Polling
+
+En `AstroRepository`, el control de pérdida de datos (Watchdog) evalúa si la telemetría está "sucia" (STALE). En lugar de usar la función `withTimeout` de las corrutinas, se implementó mediante **polling** con un bucle `while(isActive) { delay(...) }`.  
+**Razón:** `withTimeout` arroja una `CancellationException` que abortaría todo el flujo si no se captura correctamente, lo cual agrega complejidad y puede ocultar otros errores reales. El enfoque de polling explícito es más seguro y fácil de razonar: simplemente revisa la variable `lastDataMs` de forma continua.
+
+---
+
+## 5.11 Opción B para Calibración de Pasos (pasosPorGrado)
+
+El firmware del Arduino asume un valor fijo por defecto (10 pasos/grado), pero no ofrece un comando para leer el valor modificado guardado en su EEPROM.  
+Dado que nuestro equipo desarrolla la app y no el firmware, se optó por la **Opción B**: la app guarda este valor en sus `SharedPreferences` (vía `SettingsStore`) de forma persistente y lo reenvía al Arduino (`CAL:<valor>`) cada vez que se establece una conexión (secuencia de sincronización inicial). Esto asegura que el telescopio use el valor correcto, sin necesidad de modificar drásticamente el código del Arduino.
