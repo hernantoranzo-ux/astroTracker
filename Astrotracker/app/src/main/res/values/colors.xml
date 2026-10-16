@@ -2,4 +2,27 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta "espacial" basada en el diseño de Figma (Tailwind slate / blue / purple) -->
+    <color name="slate_950">#FF020617</color>
+    <color name="slate_900">#FF0F172A</color>
+    <color name="slate_800">#FF1E293B</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFCBD5E1</color>
+    <color name="text_muted">#FF94A3B8</color>
+
+    <color name="accent_blue">#FF3B82F6</color>
+    <color name="blue_600">#FF2563EB</color>
+    <color name="blue_700">#FF1D4ED8</color>
+    <color name="accent_purple">#FF9333EA</color>
+    <color name="purple_700">#FF7E22CE</color>
+
+    <!-- Estados -->
+    <color name="state_ok">#FF4ADE80</color>
+    <color name="state_warn">#FFFACC15</color>
+    <color name="state_danger">#FFF87171</color>
+
+    <!-- "Vidrio": blanco muy transparente con borde sutil (glassmorphism de Figma) -->
+    <color name="glass">#14FFFFFF</color>
+    <color name="glass_border">#1FFFFFFF</color>
 </resources>

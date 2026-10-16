@@ -81,14 +81,14 @@ sequenceDiagram
     end
 
     Note over UI, Arduino: Cuando usuario toca el D-Pad
-    Usuario->>UI: Toca botón "▲" (Adelante / DEC+)
+    Usuario->>UI: Toca botón "▲" (Adelante / AR+)
     UI->>VM: onManualCommand('F')
     VM->>Repo: sendCommand('F'.toString())
     Repo->>BT: write("F".toByteArray())
 
     Note over BT, Arduino: Dispatchers.IO — NO bloquea el hilo principal
     BT->>Arduino: 0x46 ('F')
-    Arduino->>Arduino: motorY.moveTo(pos + 200)
+    Arduino->>Arduino: motorX.moveTo(pos + 200)
 
     Note over UI, Arduino: Recepción asíncrona de telemetría (500ms del Arduino)
     loop Cada 500ms

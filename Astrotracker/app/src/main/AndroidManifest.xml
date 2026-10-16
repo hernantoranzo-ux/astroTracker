@@ -2,18 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permisos de Bluetooth clásico y ubicación -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- Permisos requeridos para Android 12+ (API 31+) -->
+    <!--
+        Permisos de Bluetooth clásico.
+        La app SOLO se conecta a dispositivos ya emparejados (no escanea), por eso:
+        - BLUETOOTH / BLUETOOTH_ADMIN solo hacen falta hasta Android 11 (API 30).
+        - Desde Android 12 (API 31) alcanza con BLUETOOTH_CONNECT (permiso "peligroso": se pide en runtime).
+        - NO se declaran BLUETOOTH_SCAN ni ACCESS_FINE_LOCATION (no usamos descubrimiento).
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
-    <!-- Declaración de los sensores necesarios -->
-    <uses-feature android:name="android.hardware.sensor.compass" android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
+    <!-- Hardware: Bluetooth obligatorio. Los sensores NO son obligatorios (se detecta en runtime si faltan,
+         así la app sigue instalable y el modo manual funciona igual). -->
+    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -27,6 +31,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

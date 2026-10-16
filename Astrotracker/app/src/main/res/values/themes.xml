@@ -1,9 +1,61 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Astrotracker" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!-- Tema oscuro fijo (la app se usa de noche). Ya no hay variante values-night. -->
+    <style name="Base.Theme.Astrotracker" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_purple</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/slate_950</item>
+        <item name="colorSurface">@color/slate_900</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/slate_800</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/text_muted</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <style name="Theme.Astrotracker" parent="Base.Theme.Astrotracker" />
+
+    <!-- ===== Estilos propios ===== -->
+    <style name="Astro" parent="" />
+    <!-- Tarjeta de vidrio. OJO: los layout_width/margin van en cada layout (un style no los aplica). -->
+    <style name="Astro.Card">
+        <item name="android:orientation">vertical</item>
+        <item name="android:background">@drawable/bg_glass_card</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <style name="Astro.H1">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Astro.Title">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Astro.Label">
+        <item name="android:textColor">@color/text_muted</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Astro.Value">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Astro.Body">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Botón del D-pad (solo ícono) -->
+    <style name="Astro.DPad" parent="Widget.Material3.Button.IconButton.Filled.Tonal">
+        <item name="iconSize">36dp</item>
+    </style>
 </resources>
