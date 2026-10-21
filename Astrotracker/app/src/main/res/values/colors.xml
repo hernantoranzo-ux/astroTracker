@@ -25,4 +25,11 @@
     <!-- "Vidrio": blanco muy transparente con borde sutil (glassmorphism de Figma) -->
     <color name="glass">#14FFFFFF</color>
     <color name="glass_border">#1FFFFFFF</color>
+
+    <!-- Menú lateral / ayuda -->
+    <color name="blue_400">#FF60A5FA</color>
+    <color name="drawer_bg">#F20F172A</color>
+    <color name="nav_selected_fill">#33FFFFFF</color>
+    <color name="blue_tint">#333B82F6</color>
+
 </resources>

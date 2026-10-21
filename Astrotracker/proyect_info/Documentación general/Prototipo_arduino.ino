@@ -43,9 +43,9 @@ AccelStepper motorY(AccelStepper::DRIVER, pinPasoY, pinDireccionY);
 
 // ================== BLUETOOTH ==================
 
-// Se crea un puerto serial por software en pines 10 y 11. 
+// Se crea un puerto serial por software en pines 0 y 1. 
 // RX (recibe datos), TX (envía datos)
-SoftwareSerial bluetoothSerial(10, 11); //Puede ser que este delirando y sea necesario poner los pines 0 y 1 en vez de 10 y 11.
+SoftwareSerial bluetoothSerial(0, 1); //Puede ser que este delirando y sea necesario poner los pines 0 y 1 en vez de 10 y 11.
 
 
 // ================== VARIABLES DE CONTROL ==================
@@ -105,6 +105,10 @@ unsigned long ultimoAzTel = 0;
 
 // false = enlace perdido: el lazo automatico queda inhibido hasta recibir un nuevo AZ_TEL
 bool enlaceActivo = true;
+
+// v1.7: Bandera para actualizar la trayectoria del motor SOLO al recibir nuevas coordenadas
+bool nuevaPosicionRecibida = false;
+const float BANDA_MUERTA_GRADOS = 0.25; // Si el error angular es menor a 0.25°, no fuerza micropasos inestables
 
 
 // ================== CALIBRACION (flag v1.6) ==================
@@ -260,23 +264,29 @@ void loop() {
     }
 
     // Recibe coordenadas del objeto
-    else if (msg.startsWith("AZ_OBJ:"))
+    else if (msg.startsWith("AZ_OBJ:")) {
       azObjetivo = msg.substring(7).toFloat();
+      nuevaPosicionRecibida = true;
+    }
 
-    else if (msg.startsWith("ALT_OBJ:"))
+    else if (msg.startsWith("ALT_OBJ:")) {
       altObjetivo = msg.substring(8).toFloat();
+      nuevaPosicionRecibida = true;
+    }
 
     // Recibe datos del celular
     else if (msg.startsWith("AZ_TEL:")) {
       azActual = msg.substring(7).toFloat();
       ultimoAzTel = millis();   // heartbeat del enlace
       enlaceActivo = true;
+      nuevaPosicionRecibida = true;
     }
 
     else if (msg.startsWith("ALT_TEL:")) {
       altActual = msg.substring(8).toFloat();
       ultimoAzTel = millis();
       enlaceActivo = true;
+      nuevaPosicionRecibida = true;
     }
 
     // Activa o desactiva tracking
@@ -338,17 +348,31 @@ void loop() {
       // Si no esta en tracking, apunta al objeto
       if (!trackingActivo) {
 
-        // Calcula diferencia angular
-        float errorAz = azObjetivo - azActual;
-        float errorAlt = altObjetivo - altActual;
+        // v1.7: Solo recalculamos la trayectoria si llegaron datos nuevos
+        if (nuevaPosicionRecibida) {
+          nuevaPosicionRecibida = false;
 
-        // Corrige el giro para el camino mas corto
-        if (errorAz > 180) errorAz -= 360;
-        if (errorAz < -180) errorAz += 360;
+          // Calcula diferencia angular
+          float errorAz = azObjetivo - azActual;
+          float errorAlt = altObjetivo - altActual;
 
-        // Mueve motores segun error
-        motorX.move(errorAz * pasosPorGrado);
-        motorY.move(errorAlt * pasosPorGrado);
+          // Corrige el giro para el camino mas corto (-180 a 180)
+          if (errorAz > 180) errorAz -= 360;
+          if (errorAz < -180) errorAz += 360;
+
+          // Aplica banda muerta para evitar vibraciones o micropasos erráticos
+          if (abs(errorAz) > BANDA_MUERTA_GRADOS) {
+            motorX.move(errorAz * pasosPorGrado);
+          } else {
+            motorX.stop();
+          }
+
+          if (abs(errorAlt) > BANDA_MUERTA_GRADOS) {
+            motorY.move(errorAlt * pasosPorGrado);
+          } else {
+            motorY.stop();
+          }
+        }
       }
 
       // Si esta en tracking, mueve continuamente

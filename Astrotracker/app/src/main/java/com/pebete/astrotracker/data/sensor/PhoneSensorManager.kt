@@ -70,6 +70,26 @@ class PhoneSensorManager(context: Context) : SensorEventListener {
         _positionFlow.resetReplayCache()
     }
 
+    // Declinación magnética en grados (diferencia entre Norte Magnético y Norte Geográfico).
+    // Si no hay ubicación del observador, es 0f (norte magnético).
+    @Volatile
+    private var magneticDeclinationDeg: Float = 0f
+
+    /**
+     * Actualiza la declinación magnética utilizando el modelo WMM de Android (GeomagneticField).
+     * @param latDeg Latitud del observador
+     * @param lonDeg Longitud del observador
+     */
+    fun updateLocation(latDeg: Double, lonDeg: Double) {
+        val geo = android.hardware.GeomagneticField(
+            latDeg.toFloat(),
+            lonDeg.toFloat(),
+            0f, // Altitud sobre el nivel del mar aproximada a 0 m
+            System.currentTimeMillis()
+        )
+        magneticDeclinationDeg = geo.declination
+    }
+
     /**
      * Esta función la llama el sistema Android CIENTOS de veces por segundo cada vez que el celular se mueve.
      */
@@ -82,18 +102,18 @@ class PhoneSensorManager(context: Context) : SensorEventListener {
         // Convertimos la matriz compleja en Ángulos de Euler (Azimut, Inclinación, Giro)
         SensorManager.getOrientation(rotationMatrix, orientationAngles)
 
-        // orientationAngles[0] -> Azimut (Rumbo de la brújula en radianes) (-π a π)
+        // orientationAngles[0] -> Azimut (Rumbo magnético en radianes) (-π a π)
         // orientationAngles[1] -> Pitch (Inclinación del celular respecto al horizonte en radianes)
 
         // Convertimos Radianes a Grados para que el humano (y el Arduino) lo entiendan.
         // Formula: grados = radianes * (180 / π)
         var azimuthDeg = (orientationAngles[0] * 180 / PI).toFloat()
 
-        // La brújula da el Azimut de -180 a 180 grados. 
-        // En astronomía, el Azimut va de 0 a 360 grados. Ajustamos esto:
-        if (azimuthDeg < 0) {
-            azimuthDeg += 360f
-        }
+        // Sumamos la declinación magnética para pasar de Norte Magnético a Norte Verdadero/Geográfico
+        azimuthDeg += magneticDeclinationDeg
+
+        // Normalizamos el Azimut a [0, 360)
+        azimuthDeg = ((azimuthDeg % 360f) + 360f) % 360f
 
         // El pitch de Android es negativo cuando levantas la punta superior del teléfono hacia el cielo.
         // Multiplicamos por -1 para que la Altitud (apuntar al cielo) sea un valor positivo.

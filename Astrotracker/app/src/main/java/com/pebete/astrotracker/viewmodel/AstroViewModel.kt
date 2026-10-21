@@ -75,7 +75,12 @@ class AstroViewModel(application: Application) : AndroidViewModel(application) {
             isStepsCalibrated = settings.stepsPerDegree != null,
             autoReconnect = settings.autoReconnect,
             redNightMode = settings.redNightMode,
-            isSensorAvailable = repository.isSensorAvailable
+            userName = settings.userName,
+            isSensorAvailable = repository.isSensorAvailable,
+            lastDeviceMac = settings.lastDeviceMac,
+            sensorsOffInBackground = settings.sensorsOffInBackground,
+            observerLat = settings.observerLat,
+            observerLon = settings.observerLon
         )
     )
     val uiState: StateFlow<AstroUiState> = _uiState
@@ -92,7 +97,16 @@ class AstroViewModel(application: Application) : AndroidViewModel(application) {
     private var previousConnectionState = ConnectionState.DISCONNECTED
     private var reconnectJob: Job? = null
 
+    // Objetivo elegido en el Catálogo, a la espera de que AutoFragment lo precargue (se consume una sola vez)
+    private var pendingTarget: Pair<Float, Float>? = null
+
     init {
+        repository.setSensorsOffInBackground(settings.sensorsOffInBackground)
+        val lat = settings.observerLat
+        val lon = settings.observerLon
+        if (lat != null && lon != null) {
+            repository.updateObserverLocation(lat, lon)
+        }
         observeRepository()
         refreshBluetoothInfo()
     }
@@ -157,7 +171,10 @@ class AstroViewModel(application: Application) : AndroidViewModel(application) {
         if (connected) {
             // Conexión exitosa: cancelamos reintentos y recordamos este dispositivo para la próxima vez
             reconnectJob?.cancel()
-            _uiState.value.selectedDeviceMac?.let { settings.lastDeviceMac = it }
+            _uiState.value.selectedDeviceMac?.let { mac ->
+                settings.lastDeviceMac = mac
+                _uiState.update { it.copy(lastDeviceMac = mac) }
+            }
         }
 
         // Si estábamos conectados y pasamos a DISCONNECTED/ERROR sin que el usuario lo pidiera => se cortó solo
@@ -295,6 +312,40 @@ class AstroViewModel(application: Application) : AndroidViewModel(application) {
         settings.redNightMode = enabled
         _uiState.update { it.copy(redNightMode = enabled) }
     }
+
+    /** Guarda el nombre del usuario (vacío => vuelve al nombre por defecto). */
+    fun onUserNameChanged(name: String) {
+        settings.userName = name
+        _uiState.update { it.copy(userName = settings.userName) }
+    }
+
+    /** Olvida el último telescopio guardado (no desconecta si ya hay una conexión activa). */
+    fun onForgetDevice() {
+        settings.lastDeviceMac = null
+        _uiState.update { it.copy(lastDeviceMac = null) }
+    }
+
+    fun onSensorsOffInBackgroundChanged(enabled: Boolean) {
+        settings.sensorsOffInBackground = enabled
+        _uiState.update { it.copy(sensorsOffInBackground = enabled) }
+        repository.setSensorsOffInBackground(enabled)
+    }
+
+    /** Guarda la ubicación del observador (el llamador ya validó los rangos). */
+    fun onObserverLocationChanged(lat: Double, lon: Double) {
+        settings.observerLat = lat
+        settings.observerLon = lon
+        _uiState.update { it.copy(observerLat = lat, observerLon = lon) }
+        repository.updateObserverLocation(lat, lon)
+    }
+
+    /** El Catálogo deja un objetivo (az, alt) para que el modo automático lo precargue. */
+    fun setPendingTarget(az: Float, alt: Float) {
+        pendingTarget = az to alt
+    }
+
+    /** Devuelve el objetivo pendiente (si hay) y lo borra: se usa una sola vez. */
+    fun consumePendingTarget(): Pair<Float, Float>? = pendingTarget.also { pendingTarget = null }
 
     /** La UI avisa si está visible (onStart/onStop) para apagar los sensores en segundo plano y ahorrar batería. */
     fun onAppVisibilityChanged(visible: Boolean) = repository.setUiVisible(visible)

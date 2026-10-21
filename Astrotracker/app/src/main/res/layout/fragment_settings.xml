@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipToPadding="false">
@@ -9,6 +10,54 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
+
+        <!-- Nombre que aparece en el menú lateral -->
+        <LinearLayout
+            style="@style/Astro.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                style="@style/Astro.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_name_title"
+                android:textSize="16sp" />
+
+            <TextView
+                style="@style/Astro.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_name_desc" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/settings_name_hint"
+                app:counterEnabled="true"
+                app:counterMaxLength="24">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_user_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionDone"
+                    android:inputType="textPersonName|textCapWords"
+                    android:maxLength="24"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/settings_name_save" />
+        </LinearLayout>
 
         <LinearLayout
             style="@style/Astro.Card"
@@ -51,7 +100,8 @@
         <LinearLayout
             style="@style/Astro.Card"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
 
             <TextView
                 style="@style/Astro.Title"
@@ -73,6 +123,151 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/settings_steps_note" />
+        </LinearLayout>
+
+        <!-- Último telescopio vinculado -->
+        <LinearLayout
+            style="@style/Astro.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                style="@style/Astro.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_device_title"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tv_last_device"
+                style="@style/Astro.Value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_forget_device"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/settings_device_forget" />
+        </LinearLayout>
+
+        <!-- Sensores en segundo plano -->
+        <LinearLayout
+            style="@style/Astro.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_sensors_bg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_sensors_bg" />
+
+            <TextView
+                style="@style/Astro.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_sensors_bg_desc" />
+        </LinearLayout>
+
+        <!-- Ubicación del observador -->
+        <LinearLayout
+            style="@style/Astro.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                style="@style/Astro.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_title"
+                android:textSize="16sp" />
+
+            <TextView
+                style="@style/Astro.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_location_desc" />
+
+            <TextView
+                android:id="@+id/tv_location_status"
+                style="@style/Astro.Value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_lat"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/settings_lat_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_lat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal|numberSigned" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_lon"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/settings_lon_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_lon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal|numberSigned" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/settings_location_save" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_phone_location"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_location_phone" />
+        </LinearLayout>
+
+        <!-- Enlace con el telescopio (informativo) -->
+        <LinearLayout
+            style="@style/Astro.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                style="@style/Astro.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_link_title"
+                android:textSize="16sp" />
+
+            <TextView
+                style="@style/Astro.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/settings_link_desc" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
