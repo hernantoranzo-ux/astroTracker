@@ -132,6 +132,7 @@ class AstroRepository(
     private var lastTelemetry: TelemetryData? = null
 
     private var uiVisible = false           // ¿la app está en primer plano? (ahorro de batería)
+    private var sensorsOffInBackground = true // preferencia: apagar sensores al pasar a segundo plano
     private var activeSensorDelay: Int? = null // delay con el que están registrados los sensores (null = apagados)
     private var hasTarget = false           // ¿ya se envió un objetivo en este tramo de modo automático?
     private var lastPhoneSendMs = 0L
@@ -251,10 +252,21 @@ class AstroRepository(
         btManager.disconnect()
     }
 
-    /** La UI avisa si la app está visible. En segundo plano apagamos sensores (batería). */
+    /** La UI avisa si la app está visible. En segundo plano apagamos sensores (batería), salvo que el usuario lo desactive. */
     fun setUiVisible(visible: Boolean) {
         uiVisible = visible
         updateSensors()
+    }
+
+    /** Preferencia del usuario: si es false, los sensores siguen activos con la app en segundo plano. */
+    fun setSensorsOffInBackground(enabled: Boolean) {
+        sensorsOffInBackground = enabled
+        updateSensors()
+    }
+
+    /** Actualiza la ubicación del observador para la corrección de declinación magnética en los sensores. */
+    fun updateObserverLocation(lat: Double, lon: Double) {
+        sensorManager.updateLocation(lat, lon)
     }
 
     // ------------------------------------------------------------------
@@ -314,7 +326,7 @@ class AstroRepository(
      * sensores ENCENDIDOS solo si hay conexión Y la app está en pantalla.
      */
     private fun updateSensors() {
-        val shouldRun = isConnected && uiVisible && sensorManager.isSensorAvailable
+        val shouldRun = isConnected && (uiVisible || !sensorsOffInBackground) && sensorManager.isSensorAvailable
         val mode = _mode.value
 
         if (shouldRun) {
@@ -330,10 +342,11 @@ class AstroRepository(
             activeSensorDelay = null
         }
 
-        // Envío de la posición del teléfono al Arduino: solo automático + sensores activos + objetivo ya enviado
+        // Envío de la posición del teléfono al Arduino: en modo automático, mantenemos el envío continuo
+        // para alimentar el heartbeat (failsafe de 5s en Arduino) y actualizar coordenadas.
         autoSendJob?.cancel()
         autoSendJob = null
-        if (shouldRun && mode == AppMode.AUTOMATIC && hasTarget) {
+        if (shouldRun && mode == AppMode.AUTOMATIC) {
             autoSendJob = repoScope.launch {
                 sensorManager.positionFlow.collect { pos -> sendPhonePosition(pos) }
             }
@@ -514,16 +527,23 @@ class AstroRepository(
             _messages.tryEmit("Esperando datos del sensor del teléfono...")
             return
         }
-        // El Arduino conserva las variables viejas de una sesión anterior. Para que NO se mueva al entrar,
-        // le mandamos la posición actual como "actual" Y como "objetivo" (error = 0) apenas pasa a automático.
-        btManager.write(
-            CommandProtocol.MANUAL_TO_AUTO.toString() +
-            CommandProtocol.buildAzTel(pos.azimuth) + CommandProtocol.buildAltTel(pos.altitude) +
-            CommandProtocol.buildAzObj(pos.azimuth) + CommandProtocol.buildAltObj(pos.altitude)
-        )
+        // 1. Enviamos primero 'a' para hacer la transición en el Arduino
+        btManager.write(CommandProtocol.MANUAL_TO_AUTO.toString())
         hasTarget = false
         _mode.value = AppMode.AUTOMATIC
         updateSensors()
+
+        // 2. Con un leve margen para que el Arduino procese el cambio de modo en su bucle,
+        // sincronizamos la posición actual como "actual" y como "objetivo" inicial (error = 0).
+        repoScope.launch {
+            delay(80L)
+            if (_mode.value == AppMode.AUTOMATIC && isConnected) {
+                btManager.write(
+                    CommandProtocol.buildAzTel(pos.azimuth) + CommandProtocol.buildAltTel(pos.altitude) +
+                    CommandProtocol.buildAzObj(pos.azimuth) + CommandProtocol.buildAltObj(pos.altitude)
+                )
+            }
+        }
     }
 
     fun switchToManual() {

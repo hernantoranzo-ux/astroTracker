@@ -20,6 +20,11 @@ class SettingsStore(context: Context) {
         const val KEY_AUTO_RECONNECT = "auto_reconnect"
         const val KEY_RED_MODE = "red_night_mode"
         const val KEY_STEPS_PER_DEGREE = "steps_per_degree"
+        const val KEY_USER_NAME = "user_name"
+        const val DEFAULT_USER_NAME = "Astrónomo Amateur"
+        const val KEY_SENSORS_OFF_BG = "sensors_off_in_background"
+        const val KEY_LAT = "observer_lat"
+        const val KEY_LON = "observer_lon"
     }
 
     private val prefs = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -39,6 +44,11 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_RED_MODE, false)
         set(value) { prefs.edit().putBoolean(KEY_RED_MODE, value).apply() }
 
+    /** Nombre que se muestra en el menú lateral (editable en Configuración). Nunca queda vacío. */
+    var userName: String
+        get() = prefs.getString(KEY_USER_NAME, null)?.takeIf { it.isNotBlank() } ?: DEFAULT_USER_NAME
+        set(value) { prefs.edit().putString(KEY_USER_NAME, value.trim().ifEmpty { DEFAULT_USER_NAME }).apply() }
+
     /** Último pasos/grado calibrado; null = nunca se calibró desde la app. */
     var stepsPerDegree: Float?
         get() = if (prefs.contains(KEY_STEPS_PER_DEGREE)) prefs.getFloat(KEY_STEPS_PER_DEGREE, 10f) else null
@@ -47,4 +57,18 @@ class SettingsStore(context: Context) {
             if (value == null) prefs.edit().remove(KEY_STEPS_PER_DEGREE).apply()
             else prefs.edit().putFloat(KEY_STEPS_PER_DEGREE, value).apply()
         }
+
+    /** Apagar los sensores del teléfono cuando la app pasa a segundo plano (ahorra batería). */
+    var sensorsOffInBackground: Boolean
+        get() = prefs.getBoolean(KEY_SENSORS_OFF_BG, true)
+        set(value) { prefs.edit().putBoolean(KEY_SENSORS_OFF_BG, value).apply() }
+
+    /** Ubicación del observador (grados). null = sin configurar. Se guardan como texto para no perder precisión. */
+    var observerLat: Double?
+        get() = prefs.getString(KEY_LAT, null)?.toDoubleOrNull()
+        set(value) { prefs.edit().putString(KEY_LAT, value?.toString()).apply() }
+
+    var observerLon: Double?
+        get() = prefs.getString(KEY_LON, null)?.toDoubleOrNull()
+        set(value) { prefs.edit().putString(KEY_LON, value?.toString()).apply() }
 }

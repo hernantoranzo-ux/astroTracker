@@ -38,12 +38,15 @@ import com.pebete.astrotracker.data.bluetooth.ConnectionState
 import com.pebete.astrotracker.data.model.TelemetryState
 import com.pebete.astrotracker.databinding.ActivityMainBinding
 import com.pebete.astrotracker.ui.auto.AutoFragment
+import com.pebete.astrotracker.ui.catalog.CatalogFragment
 import com.pebete.astrotracker.ui.connection.ConnectionFragment
+import com.pebete.astrotracker.ui.help.HelpFragment
 import com.pebete.astrotracker.ui.home.HomeFragment
 import com.pebete.astrotracker.ui.manual.ManualFragment
 import com.pebete.astrotracker.ui.settings.SettingsFragment
 import com.pebete.astrotracker.ui.settings.TextFragment
 import com.pebete.astrotracker.viewmodel.AstroViewModel
+import android.widget.TextView
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -165,8 +168,13 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, drawerBackCallback)
         binding.main.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
-            override fun onDrawerOpened(drawerView: View) { drawerBackCallback.isEnabled = true }
-            override fun onDrawerClosed(drawerView: View) { drawerBackCallback.isEnabled = false }
+            override fun onDrawerOpened(drawerView: View) {
+                drawerBackCallback.isEnabled = true
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                drawerBackCallback.isEnabled = false
+            }
         })
 
         binding.navView.setNavigationItemSelectedListener { item ->
@@ -212,9 +220,10 @@ class MainActivity : AppCompatActivity() {
         Screen.MANUAL -> ManualFragment()
         Screen.AUTO -> AutoFragment()
         Screen.SETTINGS -> SettingsFragment()
-        Screen.HELP -> TextFragment.newInstance(getString(R.string.help_body))
+        Screen.HELP -> HelpFragment()
+        Screen.CATALOG -> CatalogFragment()
         // Secciones del diseño de Figma que todavía no tienen fuente de datos
-        Screen.OBSERVATIONS, Screen.HISTORY, Screen.CATALOG, Screen.NOTIFICATIONS ->
+        Screen.OBSERVATIONS, Screen.HISTORY, Screen.NOTIFICATIONS ->
             TextFragment.newInstance(getString(R.string.dev_text))
     }
 
@@ -232,8 +241,8 @@ class MainActivity : AppCompatActivity() {
     /** Antes de Android 12 no hay permiso de runtime para Bluetooth clásico: siempre true. */
     fun hasBluetoothPermission(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) ==
-            PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) ==
+                PackageManager.PERMISSION_GRANTED
 
     fun requestBluetoothPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -275,7 +284,7 @@ class MainActivity : AppCompatActivity() {
                                 connection = it.connectionState,
                                 reconnectAttempt = it.reconnectAttempt,
                                 stale = it.connectionState == ConnectionState.CONNECTED &&
-                                    it.telemetry?.state == TelemetryState.STALE,
+                                        it.telemetry?.state == TelemetryState.STALE,
                                 redMode = it.redNightMode
                             )
                         }
@@ -287,6 +296,16 @@ class MainActivity : AppCompatActivity() {
                         Snackbar.make(binding.contentRoot, msg, Snackbar.LENGTH_LONG).show()
                     }
                 }
+                launch {
+                    val headerView = binding.navView.getHeaderView(0)
+                    val tvUserName = headerView?.findViewById<TextView>(R.id.tv_nav_user_name)
+                    viewModel.uiState
+                        .map { it.userName }
+                        .distinctUntilChanged()
+                        .collect { name ->
+                            tvUserName?.text = name
+                        }
+                }
             }
         }
     }
@@ -297,13 +316,26 @@ class MainActivity : AppCompatActivity() {
         @ColorRes val color: Int
         when {
             reconnecting -> {
-                text = getString(R.string.chip_reconnecting, state.reconnectAttempt, AstroViewModel.MAX_RECONNECT_ATTEMPTS)
+                text =
+                    getString(R.string.chip_reconnecting, state.reconnectAttempt, AstroViewModel.MAX_RECONNECT_ATTEMPTS)
                 color = R.color.state_warn
             }
-            state.connection == ConnectionState.CONNECTED -> { text = getString(R.string.chip_connected); color = R.color.state_ok }
-            state.connection == ConnectionState.CONNECTING -> { text = getString(R.string.chip_connecting); color = R.color.state_warn }
-            state.connection == ConnectionState.ERROR -> { text = getString(R.string.chip_error); color = R.color.state_danger }
-            else -> { text = getString(R.string.chip_disconnected); color = R.color.state_danger }
+
+            state.connection == ConnectionState.CONNECTED -> {
+                text = getString(R.string.chip_connected); color = R.color.state_ok
+            }
+
+            state.connection == ConnectionState.CONNECTING -> {
+                text = getString(R.string.chip_connecting); color = R.color.state_warn
+            }
+
+            state.connection == ConnectionState.ERROR -> {
+                text = getString(R.string.chip_error); color = R.color.state_danger
+            }
+
+            else -> {
+                text = getString(R.string.chip_disconnected); color = R.color.state_danger
+            }
         }
         binding.connectionChip.text = text
         binding.connectionChip.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, color))

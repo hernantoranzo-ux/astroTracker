@@ -41,6 +41,15 @@ data class AstroUiState(
     // Preferencias de usuario
     val autoReconnect: Boolean = true,
     val redNightMode: Boolean = false,
+    // Nombre mostrado en el menú lateral
+    val userName: String = "Astrónomo Amateur",
     // 0 = no hay reconexión en curso; 1..N = número de intento
-    val reconnectAttempt: Int = 0
+    val reconnectAttempt: Int = 0,
+    // Última MAC conectada con éxito (null = ninguna / olvidada)
+    val lastDeviceMac: String? = null,
+    // Apagar sensores al pasar a segundo plano
+    val sensorsOffInBackground: Boolean = true,
+    // Ubicación del observador en grados (null = sin configurar)
+    val observerLat: Double? = null,
+    val observerLon: Double? = null
 )

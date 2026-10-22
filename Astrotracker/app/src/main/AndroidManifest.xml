@@ -13,6 +13,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+    <!-- Ubicación APROXIMADA, opcional: solo para calcular dónde está cada astro (Catálogo Celeste).
+         No tiene relación con Bluetooth (no escaneamos) y el usuario puede ingresar las coordenadas a mano. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+
     <!-- Hardware: Bluetooth obligatorio. Los sensores NO son obligatorios (se detecta en runtime si faltan,
          así la app sigue instalable y el modo manual funciona igual). -->
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />

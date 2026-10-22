@@ -19,6 +19,7 @@ import com.pebete.astrotracker.ui.Screen
 import com.pebete.astrotracker.viewmodel.AstroViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
+import com.google.android.material.snackbar.Snackbar
 
 class AutoFragment : Fragment() {
 
@@ -111,6 +112,16 @@ class AutoFragment : Fragment() {
                 binding.tilCal.error = null
                 viewModel.onCalibrationValue(cal)
             }
+        }
+
+        // Objetivo elegido en el Catálogo: solo precargamos los campos. NO movemos el telescopio solos:
+        // el usuario revisa y confirma con "Apuntar".
+        viewModel.consumePendingTarget()?.let { (az, alt) ->
+            binding.etAz.setText(String.format(Locale.US, "%.2f", az))
+            binding.etAlt.setText(String.format(Locale.US, "%.2f", alt))
+            val msg = if (viewModel.uiState.value.mode == AppMode.AUTOMATIC) R.string.catalog_target_loaded
+                      else R.string.catalog_target_loaded_activate
+            Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
         }
 
         observeViewModel()

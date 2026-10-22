@@ -144,7 +144,165 @@
     <string name="settings_steps">Pasos por grado: %1$s</string>
     <string name="settings_steps_note">Este valor se reenvía al telescopio cada vez que te conectás, porque el firmware no permite leerlo.</string>
 
-    <!-- Placeholders / ayuda -->
+    <!-- Usuario / Drawer -->
+    <string name="nav_user_role">Observador celeste</string>
+    <string name="settings_name_title">Nombre del observador</string>
+    <string name="settings_name_desc">Se muestra en el menú lateral de la app.</string>
+    <string name="settings_name_hint">Tu nombre o alias</string>
+    <string name="settings_name_save">Guardar nombre</string>
+
+    <!-- Ayuda y Soporte -->
+    <string name="help_subtitle">Respuestas rápidas y guía de uso para tu telescopio</string>
+    <string name="help_guide_title">Guía de Conexión Bluetooth</string>
+    <string name="help_guide_subtitle">Conectá tu teléfono al módulo HC-05 del telescopio</string>
+    <string name="help_problems_title">Solución de Problemas</string>
+    <string name="help_faq_title">Preguntas Frecuentes</string>
+
+    <!-- Guía paso a paso -->
+    <string name="help_step1_title">1. Activá el Bluetooth en tu teléfono</string>
+    <string name="help_step1_body">Verificá que el Bluetooth esté encendido en los ajustes de tu dispositivo móvil.</string>
+    <string name="help_step2_title">2. Alimentá el telescopio (Arduino + HC-05)</string>
+    <string name="help_step2_body">Asegurate de que el módulo HC-05 esté encendido (su LED debe parpadear rápido) y que la fuente de 12 V de los motores esté conectada.</string>
+    <string name="help_step3_title">3. Emparejá el módulo desde Android</string>
+    <string name="help_step3_body">Andá a Ajustes de Bluetooth de tu teléfono y vinculá el dispositivo HC-05 (el PIN habitual es 1234 o 0000).</string>
+    <string name="help_step4_title">4. Seleccionalo en la app y tocá Conectar</string>
+    <string name="help_step4_body">En la pantalla Conexión de esta app, elegí tu módulo de la lista de emparejados y presioná Conectar.</string>
+    <string name="help_step5_title">5. ¡Listo para observar!</string>
+    <string name="help_step5_body">El chip superior cambiará a verde (\"Conectado\"). Ya podés mover los motores en Modo Manual o usar el Modo Automático.</string>
+
+    <!-- Solución de problemas comunes -->
+    <string name="help_p1_title">No aparece el dispositivo o PIN rechazado</string>
+    <string name="help_p1_body">El módulo HC-05 debe emparejarse primero en los Ajustes de Bluetooth de Android con PIN 1234 o 0000. Si no aparece en la búsqueda, verificá que el módulo reciba energía y su LED esté parpadeando.</string>
+    <string name="help_p2_title">Aparece “Sin respuesta del telescopio”</string>
+    <string name="help_p2_body">Significa que la app no recibe datos del Arduino. Verificá que los pines TX y RX entre el HC-05 y el Arduino estén cruzados (TX del módulo a RX del Arduino, y RX a TX), y que el Arduino tenga el sketch cargado.</string>
+    <string name="help_p3_title">Los botones no mueven los motores</string>
+    <string name="help_p3_body">Verificá que la alimentación de 12 V esté conectada a la bornera de la placa de motores (el cable USB de la computadora no tiene potencia para mover motores) y que el pin de habilitación (ENABLE) esté activo.</string>
+    <string name="help_p4_title">La conexión Bluetooth se corta sola</string>
+    <string name="help_p4_body">Mantené el teléfono a menos de 5 metros del telescopio sin obstáculos metálicos. Podés activar \"Reconectar automáticamente\" en Configuración para que la app restablezca el enlace ante microcortes.</string>
+    <string name="help_p5_title">El LED del módulo HC-05 parpadea muy lento</string>
+    <string name="help_p5_body">Si parpadea una vez cada dos segundos, el módulo quedó en modo de configuración AT. Desconectalo de la alimentación y volvelo a conectar sin pulsar el botón del módulo para que inicie en modo normal.</string>
+
+    <!-- FAQ -->
+    <string name="help_f1_title">¿Cómo funciona el Modo Manual?</string>
+    <string name="help_f1_body">Te permite mover los motores directamente con las flechas: ▲ ▼ mueven el eje de Ascensión Recta (azimut) y ◄ ► mueven el eje de Declinación (altitud). Mantené presionado el botón para un movimiento continuo.</string>
+    <string name="help_f2_title">¿Cómo funciona el Modo Automático?</string>
+    <string name="help_f2_body">Montá el teléfono rígidamente al telescopio. Los sensores de orientación del teléfono le indican al Arduino hacia dónde está apuntando, y los motores corrigen la posición hacia el objeto seleccionado.</string>
+    <string name="help_f3_title">¿Cómo se calibra la relación de pasos por grado?</string>
+    <string name="help_f3_body">Desde Modo Automático iniciá la calibración. El motor girará 90 grados teóricos. Medí con una regla o transportador cuántos grados giró realmente e ingresalos. La app calculará y guardará el factor exacto.</string>
+    <string name="help_f4_title">¿Para qué sirve el Modo Nocturno Rojo?</string>
+    <string name="help_f4_body">En astronomía la luz blanca arruina la adaptación a la oscuridad de los ojos. El filtro rojo te permite usar la app en plena noche sin deslumbrarte ni perder sensibilidad visual al mirar por el ocular.</string>
+
+    <!-- Placeholders / texto de desarrollo -->
     <string name="dev_text">Esta sección está en desarrollo.</string>
-    <string name="help_body">1. Emparejá el módulo HC-05 desde los ajustes de Bluetooth del teléfono (PIN habitual 1234 o 0000).\n\n2. En Conexión elegí el dispositivo y tocá Conectar.\n\n3. Modo Manual: los botones ▲ ▼ mueven el eje AR (azimut) y ◄ ► el eje DEC (altitud). Mantené presionado para seguir moviendo. Fijar cero y Fijar límite guardan posiciones de referencia en el telescopio.\n\n4. Modo Automático: el teléfono envía su orientación al telescopio. Mantené la pantalla encendida y la app abierta.\n\n5. Calibración: iniciala desde Modo Automático, medí los grados reales que giró el motor e ingresalos.\n\nSi aparece “Sin respuesta del telescopio”, revisá la alimentación del Arduino y la distancia al teléfono.</string>
+    <string name="help_body">Consultá la sección de Ayuda para obtener instrucciones paso a paso y solución de problemas.</string>
+
+    <!-- Ajustes ampliados -->
+    <string name="settings_device_title">Último telescopio vinculado</string>
+    <string name="settings_device_none">Todavía no te conectaste a ningún telescopio.</string>
+    <string name="settings_device_value">%1$s\n%2$s</string>
+    <string name="settings_device_forget">Olvidar telescopio</string>
+    <string name="settings_device_forgotten">Telescopio olvidado. Se vuelve a guardar al próximo conectar.</string>
+    <string name="settings_sensors_bg">Apagar sensores al minimizar la app</string>
+    <string name="settings_sensors_bg_desc">Ahorra batería. Si lo desactivás, el teléfono sigue enviando su orientación en modo automático con la app en segundo plano (Android puede cortarlo igualmente).</string>
+    <string name="settings_location_title">Ubicación del observador</string>
+    <string name="settings_location_desc">Se usa para calcular dónde está cada astro en el cielo (Catálogo Celeste). Alcanza con la ubicación aproximada.</string>
+    <string name="settings_location_none">Ubicación no configurada</string>
+    <string name="settings_location_value">Latitud %1$s°  ·  Longitud %2$s°</string>
+    <string name="settings_lat_hint">Latitud (-90 a 90)</string>
+    <string name="settings_lon_hint">Longitud (-180 a 180)</string>
+    <string name="settings_location_save">Guardar ubicación</string>
+    <string name="settings_location_phone">Usar ubicación del teléfono</string>
+    <string name="settings_location_saved">Ubicación guardada</string>
+    <string name="settings_location_invalid">Ingresá una latitud entre -90 y 90 y una longitud entre -180 y 180</string>
+    <string name="settings_location_unavailable">No se pudo obtener la ubicación del teléfono. Activá la ubicación o ingresala a mano.</string>
+    <string name="settings_location_denied">Sin permiso de ubicación. Podés ingresar las coordenadas a mano.</string>
+    <string name="settings_link_title">Enlace con el telescopio</string>
+    <string name="settings_link_desc">Si el telescopio no recibe la posición del teléfono durante 5 s, frena los motores por seguridad. Este tiempo está fijo en el firmware.</string>
+
+    <!-- Catálogo celeste -->
+    <string name="catalog_search_hint">Buscar por nombre, tipo o constelación</string>
+    <string name="catalog_filter_all">Todos</string>
+    <string name="catalog_filter_planets">Planetas</string>
+    <string name="catalog_filter_deep">Espacio profundo</string>
+    <string name="catalog_filter_stars">Estrellas</string>
+    <string name="catalog_empty">No hay objetos que coincidan con la búsqueda.</string>
+    <string name="catalog_no_location_title">Falta tu ubicación</string>
+    <string name="catalog_no_location_desc">Para saber dónde está cada astro en el cielo necesitamos tu latitud y longitud.</string>
+    <string name="catalog_configure_location">Configurar ubicación</string>
+    <string name="catalog_type_solar">Sistema solar</string>
+    <string name="catalog_type_deep">Espacio profundo</string>
+    <string name="catalog_type_star">Estrella</string>
+    <string name="catalog_type_with_constellation">%1$s · %2$s</string>
+    <string name="catalog_magnitude">Magnitud %1$s</string>
+    <string name="catalog_magnitude_typical">Magnitud típica %1$s</string>
+    <string name="catalog_coords">Azimut %1$s°  ·  Altitud %2$s°</string>
+    <string name="catalog_above_horizon">Sobre el horizonte</string>
+    <string name="catalog_below_horizon">Bajo el horizonte</string>
+    <string name="catalog_point">Apuntar telescopio</string>
+    <string name="catalog_not_visible">No visible ahora</string>
+    <string name="catalog_need_connection">Conectate al telescopio para apuntarlo.</string>
+    <string name="catalog_target_loaded">Objetivo cargado. Tocá Apuntar y activá el seguimiento: los astros se mueven unos 15° por hora.</string>
+    <string name="catalog_target_loaded_activate">Objetivo cargado. Activá el modo automático para apuntar.</string>
+    <string name="catalog_precision_note">Posiciones calculadas con tu hora y ubicación (precisión de décimas de grado; Luna y planetas, aproximada). El azimut es respecto al norte geográfico.</string>
+
+    <!-- Objetos celestes -->
+    <string name="obj_moon">Luna</string>
+    <string name="obj_venus">Venus</string>
+    <string name="obj_mars">Marte</string>
+    <string name="obj_jupiter">Júpiter</string>
+    <string name="obj_saturn">Saturno</string>
+    <string name="obj_m42">Nebulosa de Orión (M42)</string>
+    <string name="obj_m45">Las Pléyades (M45)</string>
+    <string name="obj_m31">Galaxia de Andrómeda (M31)</string>
+    <string name="obj_omega_cen">Omega Centauri</string>
+    <string name="obj_lmc">Gran Nube de Magallanes</string>
+    <string name="obj_smc">Pequeña Nube de Magallanes</string>
+    <string name="obj_sirius">Sirio</string>
+    <string name="obj_canopus">Canopus</string>
+    <string name="obj_alpha_cen">Alfa Centauri</string>
+    <string name="obj_arcturus">Arturo</string>
+    <string name="obj_vega">Vega</string>
+    <string name="obj_rigel">Rigel</string>
+    <string name="obj_betelgeuse">Betelgeuse</string>
+    <string name="obj_achernar">Achernar</string>
+    <string name="obj_antares">Antares</string>
+    <string name="obj_polaris">Polaris</string>
+
+    <!-- Constelaciones -->
+    <string name="con_orion">Orión</string>
+    <string name="con_taurus">Tauro</string>
+    <string name="con_andromeda">Andrómeda</string>
+    <string name="con_centaurus">Centauro</string>
+    <string name="con_dorado">Dorado</string>
+    <string name="con_tucana">Tucán</string>
+    <string name="con_canis_major">Can Mayor</string>
+    <string name="con_carina">Quilla</string>
+    <string name="con_bootes">Boyero</string>
+    <string name="con_lyra">Lira</string>
+    <string name="con_eridanus">Erídano</string>
+    <string name="con_scorpius">Escorpio</string>
+    <string name="con_ursa_minor">Osa Menor</string>
+
+    <!-- Descripciones -->
+    <string name="desc_moon">Nuestro satélite natural. Ideal para empezar: cráteres y mares se ven con cualquier telescopio.</string>
+    <string name="desc_venus">El planeta más brillante del cielo. Muestra fases como la Luna.</string>
+    <string name="desc_mars">El planeta rojo. Su tamaño aparente cambia mucho según su distancia a la Tierra.</string>
+    <string name="desc_jupiter">El gigante del sistema solar. Se distinguen sus bandas y las cuatro lunas galileanas.</string>
+    <string name="desc_saturn">Famoso por sus anillos, visibles incluso con telescopios pequeños.</string>
+    <string name="desc_m42">Cuna de estrellas en la espada de Orión. Visible a simple vista como una mancha difusa.</string>
+    <string name="desc_m45">Cúmulo abierto de estrellas azules jóvenes, también llamado Las Siete Hermanas.</string>
+    <string name="desc_m31">La galaxia grande más cercana a la Vía Láctea, a unos 2,5 millones de años luz.</string>
+    <string name="desc_omega_cen">El cúmulo globular más grande y brillante de la Vía Láctea.</string>
+    <string name="desc_lmc">Galaxia satélite de la Vía Láctea, visible a simple vista desde el hemisferio sur.</string>
+    <string name="desc_smc">Otra galaxia satélite de la Vía Láctea, cerca del polo sur celeste.</string>
+    <string name="desc_sirius">La estrella más brillante del cielo nocturno.</string>
+    <string name="desc_canopus">La segunda estrella más brillante del cielo, ideal en el hemisferio sur.</string>
+    <string name="desc_alpha_cen">El sistema estelar más cercano al Sol. Con telescopio se separa en dos estrellas.</string>
+    <string name="desc_arcturus">Gigante naranja, la estrella más brillante del hemisferio celeste norte.</string>
+    <string name="desc_vega">Estrella blanco-azulada, una de las más brillantes y estudiadas.</string>
+    <string name="desc_rigel">Supergigante azul en el pie de Orión.</string>
+    <string name="desc_betelgeuse">Supergigante roja en el hombro de Orión.</string>
+    <string name="desc_achernar">Estrella azul muy achatada por su rápida rotación.</string>
+    <string name="desc_antares">Supergigante roja, el corazón de Escorpio.</string>
+    <string name="desc_polaris">La estrella polar norte. Desde Argentina no es visible.</string>
 </resources>
