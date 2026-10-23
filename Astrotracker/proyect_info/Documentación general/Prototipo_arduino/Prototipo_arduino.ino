@@ -43,8 +43,8 @@ AccelStepper motorY(AccelStepper::DRIVER, pinPasoY, pinDireccionY);
 
 // Se crea un puerto serial por software en pines 10 y 11. 
 // RX (recibe datos), TX (envía datos)
-SoftwareSerial bluetoothSerial(10, 11); //Puede ser que este delirando y sea necesario poner los pines 0 y 1 en vez de 10 y 11.
-
+SoftwareSerial bluetoothSerial(0, 1); //Puede ser que este delirando y sea necesario poner los pines 0 y 1 en vez de 10 y 11.
+//si deliro, lo cambiamos al 0 y 1
 
 // ================== VARIABLES DE CONTROL ==================
 //(Recordar que para que estos valores sean mas validos primero declarar toda posicion en el modo manual).
