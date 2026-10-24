@@ -1,38 +1,45 @@
-// Actualizacion 29/03/2026 Version timmy 1.5 (Ni idea de las anteriores versiones),esta version se caracteriza por:
-//Se implementó una separación estricta entre el modo manual y automático, evitando conflictos en la lectura de datos Bluetooth. Además, se mejoró el protocolo de comunicación, la estabilidad del sistema y la lógica de calibración, manteniendo compatibilidad con funciones existentes como la lectura de posición.
+// Actualizacion 23/10/2026 Version 1.8:
+// (1) Correccion de giro continuo en modo automatico: solo se recalcula la trayectoria cuando los motores
+//     terminaron el movimiento anterior (motorX.distanceToGo() == 0 && motorY.distanceToGo() == 0).
+// (2) Se aumento BANDA_MUERTA_GRADOS a 1.0 grado para tolerar el ruido y jitter de los sensores del celular.
+// (3) Sincronizacion de archivos y compatibilidad con Arduino IDE.
+// Actualizacion 08/10/2026 Version 1.6: (1) La calibracion ya no es pisada por el lazo automatico (flag 'calibrando').
+// (2) Failsafe de enlace: si en modo automatico no llegan AZ_TEL en 5 s se apaga el tracking y se detienen los motores.
+// Actualizacion 29/03/2026 Version timmy 1.5:
+// Se implemento una separacion estricta entre el modo manual y automatico, evitando conflictos en la lectura de datos Bluetooth.
 // ============================================================
 // SISTEMA DE SEGUIMIENTO ASTRONOMICO AUTOMATICO
 // Este programa controla dos motores paso a paso (X e Y)
-// mediante Bluetooth desde una app móvil.
+// mediante Bluetooth desde una app movil.
 // ============================================================
-// - MODO MANUAL → comandos simples (char)
-// - MODO AUTOMATICO → mensajes tipo "CLAVE:VALOR"
+// - MODO MANUAL -> comandos simples (char)
+// - MODO AUTOMATICO -> mensajes tipo "CLAVE:VALOR"
 
-// Librería para controlar motores paso a paso con aceleración y velocidad
+// Libreria para controlar motores paso a paso con aceleracion y velocidad
 #include <AccelStepper.h>
 
-// Librería para crear un puerto serie adicional (para Bluetooth HC-05)
+// Libreria para crear un puerto serie adicional (para Bluetooth HC-05)
 #include <SoftwareSerial.h>
 
 
-// ================== DEFINICIÓN DE PINES ==================
+// ================== DEFINICION DE PINES ==================
 
-// Pin que envía pulsos al motor X (movimiento paso a paso)
+// Pin que envia pulsos al motor X (movimiento paso a paso)
 const int pinPasoX = 2;
 
-// Pin que define la dirección de giro del motor X
+// Pin que define la direccion de giro del motor X
 const int pinDireccionX = 5;
 
 // Pin de pasos del motor Y
 const int pinPasoY = 3;
 
-// Pin de dirección del motor Y
+// Pin de direccion del motor Y
 const int pinDireccionY = 6;
 
 
-// ================== CREACIÓN DE MOTORES ==================
+// ================== CREACION DE MOTORES ==================
 
-// Se crea el motor X indicando que usa un driver externo (tipo A4988 como ahora,en el futuro puede ser otro tipo)
+// Se crea el motor X indicando que usa un driver externo (tipo A4988)
 AccelStepper motorX(AccelStepper::DRIVER, pinPasoX, pinDireccionX);
 
 // Se crea el motor Y
@@ -41,91 +48,77 @@ AccelStepper motorY(AccelStepper::DRIVER, pinPasoY, pinDireccionY);
 
 // ================== BLUETOOTH ==================
 
-// Se crea un puerto serial por software en pines 10 y 11. 
-// RX (recibe datos), TX (envía datos)
-SoftwareSerial bluetoothSerial(0, 1); //Puede ser que este delirando y sea necesario poner los pines 0 y 1 en vez de 10 y 11.
-//si deliro, lo cambiamos al 0 y 1
+// Se crea un puerto serial por software
+SoftwareSerial bluetoothSerial(0, 1); // Pines para HC-05 (0 y 1 o 10 y 11 segun conexion fisica)
+
 
 // ================== VARIABLES DE CONTROL ==================
-//(Recordar que para que estos valores sean mas validos primero declarar toda posicion en el modo manual).
-// Guarda la posición actual como referencia cero
 int posicionCeroX = 0;
 int posicionCeroY = 0;
 
-// Define límites máximos para evitar que el sistema se rompa
 int posicionMaximaX = 0;
 int posicionMaximaY = 0;
 
-
-// Velocidad máxima de los motores en modo manual
+// Velocidad maxima de los motores en modo manual
 int velocidadX = 1000;
 int velocidadY = 1000;
-
 
 // Arrays para guardar posiciones (memoria de puntos)
 int puntosMovimientoX[10];
 int puntosMovimientoY[10];
 
-// Cantidad de puntos guardados
 int numPuntos = 0;
 
 
 // ================== MODO AUTOMATICO ==================
-//(Es importante que para que esto funcione primero se tiene que dejar bien claro los valores que se obtienen del modo Manual).
-// Indica si el sistema está en modo automático
 bool modoAutomatico = false;
-
-// Indica si está siguiendo un objeto continuamente
 bool trackingActivo = false;
-
 
 // Coordenadas del objeto a seguir (enviadas por la app)
 float azObjetivo = 0;   // azimut
 float altObjetivo = 0;  // altura
 
-
 // Coordenadas actuales del celular (sensores)
 float azActual = 0;
 float altActual = 0;
-
 
 // Velocidad de seguimiento (tracking sideral)
 float velocidadSideral = 50;
 
 
-// ================== CALIBRACION ==================
+// ================== FAILSAFE DE ENLACE (v1.6) ==================
+const unsigned long TIMEOUT_ENLACE_MS = 5000;
+unsigned long ultimoAzTel = 0;
+bool enlaceActivo = true;
 
-// Relación entre pasos del motor y grados reales
-// ESTE VALOR SE AJUSTA DESDE LA APP
+// v1.8: Bandera para actualizar la trayectoria del motor SOLO al recibir nuevas coordenadas
+bool nuevaPosicionRecibida = false;
+
+// v1.8: Banda muerta de 1.0 grado para tolerar el ruido y oscilacion natural de los sensores del celular
+const float BANDA_MUERTA_GRADOS = 1.0;
+
+
+// ================== CALIBRACION (flag v1.6) ==================
+bool calibrando = false;
 float pasosPorGrado = 10.0;
-// ============================================================
-// FORMATO AUTOMATICO:
-// AZ_OBJ:x
-// ALT_OBJ:x
-// AZ_TEL:x
-// ALT_TEL:x
-// TRACK:ON / OFF
-// CAL:START
-// CAL:valor
-// MANUAL
-// ============================================================
+
 
 // ================== SETUP ==================
 void setup() {
 
-  // Configura velocidad máxima del motor X
+  // Configura velocidad maxima del motor X
   motorX.setMaxSpeed(velocidadX);
 
-  // Configura aceleración del motor X
+  // Configura aceleracion del motor X
   motorX.setAcceleration(500);
 
-  // Configura velocidad máxima del motor Y
+  // Configura velocidad maxima del motor Y
   motorY.setMaxSpeed(velocidadY);
 
-  // Configura aceleración del motor Y
+  // Configura aceleracion del motor Y
   motorY.setAcceleration(500);
 
-  // Inicializa comunicación Bluetooth
+  // Inicializa comunicacion Bluetooth
   bluetoothSerial.begin(9600);
 }
 
@@ -138,10 +131,8 @@ void loop() {
   // ============================================================
   if (!modoAutomatico && bluetoothSerial.available() > 0) {
 
-    // Lee un carácter enviado desde la app
     char comando = bluetoothSerial.read();
 
-    // Evalúa qué comando se recibió
     switch (comando) {
 
       // Mueve motor X hacia adelante
@@ -149,7 +140,7 @@ void loop() {
         motorX.moveTo(motorX.currentPosition() + 200);
         break;
 
-      // Mueve motor X hacia atrás
+      // Mueve motor X hacia atras
       case 'B':
         motorX.moveTo(motorX.currentPosition() - 200);
         break;
@@ -164,19 +155,19 @@ void loop() {
         motorY.moveTo(motorY.currentPosition() - 200);
         break;
 
-      // Define la posición actual como cero
+      // Define la posicion actual como cero
       case 'Z':
         posicionCeroX = motorX.currentPosition();
         posicionCeroY = motorY.currentPosition();
         break;
 
-      // Define la posición actual como límite máximo
+      // Define la posicion actual como limite maximo
       case 'M':
         posicionMaximaX = motorX.currentPosition();
         posicionMaximaY = motorY.currentPosition();
         break;
 
-      // Envía la posición actual al celular
+      // Envia la posicion actual al celular
       case 'P': {
         int posX = motorX.currentPosition();
         int posY = motorY.currentPosition();
@@ -202,15 +193,18 @@ void loop() {
         motorY.setMaxSpeed(velocidadY);
         break;
 
-      // Activa modo automático
+      // Activa modo automatico
       case 'a':
         modoAutomatico = true;
+        ultimoAzTel = millis();   // arranca el reloj del failsafe de enlace
+        enlaceActivo = true;
         break;
 
       // Vuelve a modo manual
       case 'm':
         modoAutomatico = false;
         trackingActivo = false;
+        calibrando = false;
         break;
     }
   }
@@ -221,85 +215,123 @@ void loop() {
   // ============================================================
   if (modoAutomatico && bluetoothSerial.available() > 0) {
 
-    // Lee texto completo hasta salto de línea
     String msg = bluetoothSerial.readStringUntil('\n');
-
-    // Elimina espacios o saltos
     msg.trim();
 
     // ===== CAMBIO DE MODO =====
     if (msg == "MANUAL") {
       modoAutomatico = false;
       trackingActivo = false;
+      calibrando = false;
+      motorX.stop();   // v1.6: frena suavemente al salir de automatico
+      motorY.stop();
     }
 
     // Recibe coordenadas del objeto
-    else if (msg.startsWith("AZ_OBJ:"))
+    else if (msg.startsWith("AZ_OBJ:")) {
       azObjetivo = msg.substring(7).toFloat();
+      nuevaPosicionRecibida = true;
+    }
 
-    else if (msg.startsWith("ALT_OBJ:"))
+    else if (msg.startsWith("ALT_OBJ:")) {
       altObjetivo = msg.substring(8).toFloat();
+      nuevaPosicionRecibida = true;
+    }
 
     // Recibe datos del celular
-    else if (msg.startsWith("AZ_TEL:"))
+    else if (msg.startsWith("AZ_TEL:")) {
       azActual = msg.substring(7).toFloat();
+      ultimoAzTel = millis();   // heartbeat del enlace
+      enlaceActivo = true;
+      nuevaPosicionRecibida = true;
+    }
 
-    else if (msg.startsWith("ALT_TEL:"))
+    else if (msg.startsWith("ALT_TEL:")) {
       altActual = msg.substring(8).toFloat();
+      ultimoAzTel = millis();
+      enlaceActivo = true;
+      nuevaPosicionRecibida = true;
+    }
 
     // Activa o desactiva tracking
-    else if (msg == "TRACK:ON")
-      trackingActivo = true;
+    else if (msg == "TRACK:ON") {
+      if (!calibrando) trackingActivo = true;
+    }
 
     else if (msg == "TRACK:OFF")
       trackingActivo = false;
 
-    // Ajusta velocidad automática
+    // Ajusta velocidad automatica
     else if (msg.startsWith("VEL:"))
       velocidadSideral = msg.substring(4).toFloat();
 
     // ================== CALIBRACION ==================
-
-    // Inicia calibración moviendo 90°
     else if (msg == "CAL:START") {
-
-      // Desactiva tracking pero mantiene modo automático
       trackingActivo = false;
-
-      // Mueve el motor 90 grados teóricos
+      calibrando = true;
       motorX.move(90 * pasosPorGrado);
     }
 
-    // Recibe nuevo valor calibrado
     else if (msg.startsWith("CAL:")) {
-      pasosPorGrado = msg.substring(4).toFloat();
+      float nuevo = msg.substring(4).toFloat();
+      if (nuevo > 0) pasosPorGrado = nuevo;
+      calibrando = false;
     }
   }
 
 
-  // ================== LOGICA AUTOMATICA ==================
+  // ================== LOGICA AUTOMATICA (v1.8) ==================
   if (modoAutomatico) {
 
-    // Si no está en tracking, apunta al objeto
-    if (!trackingActivo) {
-
-      // Calcula diferencia angular
-      float errorAz = azObjetivo - azActual;
-      float errorAlt = altObjetivo - altActual;
-
-      // Corrige el giro para el camino más corto
-      if (errorAz > 180) errorAz -= 360;
-      if (errorAz < -180) errorAz += 360;
-
-      // Mueve motores según error
-      motorX.move(errorAz * pasosPorGrado);
-      motorY.move(errorAlt * pasosPorGrado);
+    // FAILSAFE (v1.6): si no llega AZ_TEL en TIMEOUT_ENLACE_MS, se considera perdido el enlace con la app
+    if (millis() - ultimoAzTel > TIMEOUT_ENLACE_MS) {
+      if (enlaceActivo) {
+        trackingActivo = false;   // apaga el seguimiento sideral
+        motorX.stop();            // frena los motores
+        motorY.stop();
+        enlaceActivo = false;
+      }
     }
 
-    // Si está en tracking, mueve continuamente
-    else {
-      motorX.setSpeed(velocidadSideral);
-      motorX.runSpeed();
+    // Solo se controla el movimiento si hay enlace y no se esta calibrando
+    if (enlaceActivo && !calibrando) {
+
+      // Si no esta en tracking, apunta al objeto
+      if (!trackingActivo) {
+
+        // v1.8: Solo recalculamos la trayectoria si llegaron datos nuevos Y el movimiento previo ya finalizo.
+        // Esto evita que cada nuevo paquete de la app (cada 200 ms) reinicie o extienda el movimiento indefinidamente.
+        if (nuevaPosicionRecibida && motorX.distanceToGo() == 0 && motorY.distanceToGo() == 0) {
+          nuevaPosicionRecibida = false;
+
+          // Calcula diferencia angular
+          float errorAz = azObjetivo - azActual;
+          float errorAlt = altObjetivo - altActual;
+
+          // Corrige el giro para el camino mas corto (-180 a 180)
+          if (errorAz > 180) errorAz -= 360;
+          if (errorAz < -180) errorAz += 360;
+
+          // Aplica banda muerta para evitar vibraciones o micropasos erraticos
+          if (abs(errorAz) > BANDA_MUERTA_GRADOS) {
+            motorX.move(errorAz * pasosPorGrado);
+          } else {
+            motorX.stop();
+          }
+
+          if (abs(errorAlt) > BANDA_MUERTA_GRADOS) {
+            motorY.move(errorAlt * pasosPorGrado);
+          } else {
+            motorY.stop();
+          }
+        }
+      }
+
+      // Si esta en tracking, mueve continuamente
+      else {
+        motorX.setSpeed(velocidadSideral);
+        motorX.runSpeed();
+      }
     }
   }
 
@@ -309,7 +341,7 @@ void loop() {
   motorY.run();
 
 
-  // Envía datos al celular
+  // Envia datos al celular
   enviarDatos();
 }
 
@@ -319,14 +351,14 @@ void enviarDatos() {
 
   static unsigned long t = 0;
 
-  // Envía datos cada 500 ms
+  // Envia datos cada 500 ms
   if (millis() - t > 500) {
 
     t = millis();
 
     float errorAz = azObjetivo - azActual;
 
-    // Envía datos en formato:
+    // Envia datos en formato:
     // DATA:az,alt,error,tracking
     bluetoothSerial.print("DATA:");
     bluetoothSerial.print(azActual);
